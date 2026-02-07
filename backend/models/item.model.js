@@ -44,4 +44,9 @@ const itemSchema = new mongoose.Schema(
   }
 );
 
+
+itemSchema.index({ status: 1 });
+itemSchema.index({ category: 1 });
+itemSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Item', itemSchema);

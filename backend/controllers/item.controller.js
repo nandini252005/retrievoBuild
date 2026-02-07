@@ -36,11 +36,41 @@ const createItem = async (req, res) => {
 
 const getItems = async (req, res) => {
   try {
-    const items = await Item.find()
-      .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 });
+    const parsedPage = Number.parseInt(req.query.page, 10);
+    const parsedLimit = Number.parseInt(req.query.limit, 10);
 
-    return res.status(200).json(items);
+    const page = Number.isNaN(parsedPage) || parsedPage <= 0 ? 1 : parsedPage;
+    const limit = Number.isNaN(parsedLimit) || parsedLimit <= 0 ? 10 : parsedLimit;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+
+    const [items, totalItems] = await Promise.all([
+      Item.find(filter)
+        .populate('createdBy', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Item.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.status(200).json({
+      items,
+      page,
+      limit,
+      totalItems,
+      totalPages,
+    });
   } catch (error) {
     return res.status(500).json({ message: 'Failed to fetch items' });
   }
