@@ -72,9 +72,14 @@ const getItems = async (req, res) => {
       totalPages,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Failed to fetch items' });
-  }
-};
+  console.error('getItems error:', error);
+  return res.status(500).json({
+    message: 'Failed to fetch items',
+    error: error.message
+  });
+}
+}
+
 
 const getItemById = async (req, res) => {
   try {
