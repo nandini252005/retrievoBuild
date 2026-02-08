@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 import apiClient from '../api/client';
@@ -55,13 +56,16 @@ function ItemsPage() {
             <ul>
               {items.map((item) => (
                 <li key={item._id}>
-                  <p>Title: {item.title}</p>
-                  <p>Category: {item.category}</p>
-                  <p>Status: {item.status}</p>
-                  <p>Location: {item.location}</p>
-                </li>
-              ))}
-            </ul>
+                <Link to={`/items/${item._id}`}>
+                <p>Title: {item.title}</p>
+                <p>Category: {item.category}</p>
+                <p>Status: {item.status}</p>
+                <p>Location: {item.location}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
           )}
 
           <div>
