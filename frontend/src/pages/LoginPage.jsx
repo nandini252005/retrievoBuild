@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthContext';
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { setAuthToken } = useAuth();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,14 +24,14 @@ function LoginPage() {
         password,
       });
 
-      const token = response.data?.token;
+      const { token, user } = response.data || {};
 
-      if (!token) {
-        setErrorMessage('Login succeeded but no token was returned by the server.');
+      if (!token || !user) {
+        setErrorMessage('Invalid login response from server.');
         return;
       }
 
-      setAuthToken(token);
+      login(token, user);
       navigate('/items', { replace: true });
     } catch (error) {
       const apiMessage = error.response?.data?.message;
@@ -44,6 +44,7 @@ function LoginPage() {
   return (
     <main className="page">
       <h1>Login</h1>
+
       <section className="card">
         <form className="form" onSubmit={handleSubmit}>
           <div className="form-row">
@@ -70,7 +71,11 @@ function LoginPage() {
             />
           </div>
 
-          {errorMessage ? <p className="message-error" role="alert">{errorMessage}</p> : null}
+          {errorMessage && (
+            <p className="message-error" role="alert">
+              {errorMessage}
+            </p>
+          )}
 
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Logging in...' : 'Login'}

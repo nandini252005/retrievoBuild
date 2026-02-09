@@ -117,6 +117,22 @@ function ItemDetailPage() {
     }
   };
 
+  const handleMarkAsFound = async () => {
+  try {
+    await apiClient.patch(`/items/${id}/status`, {
+      status: 'FOUND',
+    });
+
+    // Update UI immediately
+    setItem((prev) =>
+      prev ? { ...prev, status: 'FOUND' } : prev
+    );
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to mark item as found');
+  }
+};
+
+
   const handleReviewClaim = async (claimId, decision) => {
     setReviewErrorMessage('');
     setReviewingClaimIds((prev) => ({ ...prev, [claimId]: true }));
@@ -195,6 +211,21 @@ function ItemDetailPage() {
         <p><strong>Status:</strong> {item.status}</p>
         <p><strong>Creator:</strong> {item.createdBy?.name || item.createdBy?.email || 'Unknown'}</p>
       </section>
+
+      {isAuthenticated &&
+  user &&
+  item.status === 'LOST' &&
+  item.createdBy?._id === user.id && (
+    <section className="card">
+      <button
+        onClick={handleMarkAsFound}
+        className="btn-primary"
+      >
+        Mark as Found
+      </button>
+    </section>
+)}
+
 
       {canShowClaimForm ? (
         <section className="card">
