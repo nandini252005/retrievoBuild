@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import apiClient from '../api/client';
@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthContext';
 
 function ItemDetailPage() {
   const { id } = useParams();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [item, setItem] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,6 +16,28 @@ function ItemDetailPage() {
   const [isSubmittingClaim, setIsSubmittingClaim] = useState(false);
   const [claimSuccessMessage, setClaimSuccessMessage] = useState('');
   const [claimErrorMessage, setClaimErrorMessage] = useState('');
+
+  const [claims, setClaims] = useState([]);
+  const [isLoadingClaims, setIsLoadingClaims] = useState(false);
+  const [claimsError, setClaimsError] = useState('');
+  const [reviewErrorMessage, setReviewErrorMessage] = useState('');
+  const [reviewingClaimIds, setReviewingClaimIds] = useState({});
+
+  const ownerId = useMemo(() => {
+    if (!item?.createdBy) {
+      return null;
+    }
+
+    if (typeof item.createdBy === 'string') {
+      return item.createdBy;
+    }
+
+    return item.createdBy._id || item.createdBy.id || null;
+  }, [item]);
+
+  const currentUserId = user?._id || user?.id || null;
+  const isOwner = Boolean(currentUserId && ownerId && currentUserId === ownerId);
+  const canShowClaimForm = isAuthenticated && item?.status === 'FOUND' && !isOwner;
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -36,7 +58,42 @@ function ItemDetailPage() {
     fetchItem();
   }, [id]);
 
-  const canShowClaimForm = isAuthenticated && item?.status === 'FOUND';
+  useEffect(() => {
+    const fetchClaims = async () => {
+      if (!item || !isOwner) {
+        setClaims([]);
+        setClaimsError('');
+        setReviewErrorMessage('');
+        return;
+      }
+
+      setIsLoadingClaims(true);
+      setClaimsError('');
+
+      try {
+        const response = await apiClient.get('/claims', {
+          params: {
+            itemId: id,
+          },
+        });
+
+        if (Array.isArray(response.data)) {
+          setClaims(response.data);
+        } else if (Array.isArray(response.data?.claims)) {
+          setClaims(response.data.claims);
+        } else {
+          setClaims([]);
+        }
+      } catch (fetchClaimsError) {
+        setClaims([]);
+        setClaimsError(fetchClaimsError.response?.data?.message || 'Failed to fetch claims');
+      } finally {
+        setIsLoadingClaims(false);
+      }
+    };
+
+    fetchClaims();
+  }, [id, item, isOwner]);
 
   const handleClaimSubmit = async (event) => {
     event.preventDefault();
@@ -57,6 +114,47 @@ function ItemDetailPage() {
       setClaimErrorMessage(submitError.response?.data?.message || 'Failed to submit claim');
     } finally {
       setIsSubmittingClaim(false);
+    }
+  };
+
+  const handleReviewClaim = async (claimId, decision) => {
+    setReviewErrorMessage('');
+    setReviewingClaimIds((prev) => ({ ...prev, [claimId]: true }));
+
+    const endpoint = decision === 'approve' ? `/claims/${claimId}/approve` : `/claims/${claimId}/reject`;
+
+    try {
+      const response = await apiClient.patch(endpoint);
+      const updatedClaim = response.data?.claim || response.data;
+      const updatedItem = response.data?.item;
+
+      setClaims((prevClaims) =>
+        prevClaims.map((claim) =>
+          claim._id === claimId || claim.id === claimId
+            ? {
+                ...claim,
+                ...(updatedClaim && typeof updatedClaim === 'object' ? updatedClaim : {}),
+                status:
+                  updatedClaim?.status || (decision === 'approve' ? 'APPROVED' : 'REJECTED'),
+              }
+            : claim
+        )
+      );
+
+      if (updatedItem && typeof updatedItem === 'object') {
+        setItem((prevItem) =>
+          prevItem
+            ? {
+                ...prevItem,
+                ...updatedItem,
+              }
+            : prevItem
+        );
+      }
+    } catch (reviewError) {
+      setReviewErrorMessage(reviewError.response?.data?.message || 'Failed to review claim');
+    } finally {
+      setReviewingClaimIds((prev) => ({ ...prev, [claimId]: false }));
     }
   };
 
@@ -120,6 +218,62 @@ function ItemDetailPage() {
               {isSubmittingClaim ? 'Submitting claim...' : 'Submit claim'}
             </button>
           </form>
+        </section>
+      ) : null}
+
+      {isOwner ? (
+        <section className="card">
+          <h2>Claims</h2>
+
+          {isLoadingClaims ? <p className="muted-text">Loading claims...</p> : null}
+          {claimsError ? <p className="message-error" role="alert">{claimsError}</p> : null}
+          {reviewErrorMessage ? <p className="message-error" role="alert">{reviewErrorMessage}</p> : null}
+
+          {!isLoadingClaims && !claimsError && claims.length === 0 ? (
+            <p className="muted-text">No claims have been submitted yet.</p>
+          ) : null}
+
+          {!isLoadingClaims && !claimsError && claims.length > 0 ? (
+            <div className="form">
+              {claims.map((claim) => {
+                const claimId = claim._id || claim.id;
+                const claimant = claim.claimantId || claim.claimedBy || {};
+                const isReviewing = Boolean(claimId && reviewingClaimIds[claimId]);
+                const isPending = claim.status === 'PENDING';
+
+                return (
+                  <article key={claimId} className="card">
+                    <p>
+                      <strong>Claimed by:</strong>{' '}
+                      {claimant.name || claimant.email || 'Unknown claimant'}
+                      {claimant.name && claimant.email ? ` (${claimant.email})` : ''}
+                    </p>
+                    <p><strong>Message:</strong> {claim.message || 'No message provided.'}</p>
+                    <p><strong>Status:</strong> {claim.status}</p>
+
+                    {isPending ? (
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => handleReviewClaim(claimId, 'approve')}
+                          disabled={isReviewing}
+                        >
+                          {isReviewing ? 'Processing...' : 'Approve'}
+                        </button>{' '}
+                        <button
+                          type="button"
+                          onClick={() => handleReviewClaim(claimId, 'reject')}
+                          disabled={isReviewing}
+                        >
+                          {isReviewing ? 'Processing...' : 'Reject'}
+                        </button>
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          ) : null}
         </section>
       ) : null}
     </main>
