@@ -62,45 +62,47 @@ function ItemDetailPage() {
 
   if (isLoading) {
     return (
-      <main>
+      <main className="page">
         <h1>Item Detail</h1>
-        <p>Loading item...</p>
+        <p className="muted-text">Loading item...</p>
       </main>
     );
   }
 
   if (error) {
     return (
-      <main>
+      <main className="page">
         <h1>Item Detail</h1>
-        <p role="alert">{error}</p>
+        <p className="message-error" role="alert">{error}</p>
       </main>
     );
   }
 
   if (!item) {
     return (
-      <main>
+      <main className="page">
         <h1>Item Detail</h1>
-        <p>Item not found.</p>
+        <p className="muted-text">Item not found.</p>
       </main>
     );
   }
 
   return (
-    <main>
+    <main className="page">
       <h1>{item.title}</h1>
-      <p>Description: {item.description}</p>
-      <p>Category: {item.category}</p>
-      <p>Location: {item.location}</p>
-      <p>Status: {item.status}</p>
-      <p>Creator: {item.createdBy?.name || item.createdBy?.email || 'Unknown'}</p>
+      <section className="card">
+        <p><strong>Description:</strong> {item.description}</p>
+        <p><strong>Category:</strong> {item.category}</p>
+        <p><strong>Location:</strong> {item.location}</p>
+        <p><strong>Status:</strong> {item.status}</p>
+        <p><strong>Creator:</strong> {item.createdBy?.name || item.createdBy?.email || 'Unknown'}</p>
+      </section>
 
       {canShowClaimForm ? (
-        <section>
+        <section className="card">
           <h2>Claim this item</h2>
-          <form onSubmit={handleClaimSubmit}>
-            <div>
+          <form className="form" onSubmit={handleClaimSubmit}>
+            <div className="form-row">
               <label htmlFor="claim-message">Message (optional)</label>
               <textarea
                 id="claim-message"
@@ -111,8 +113,8 @@ function ItemDetailPage() {
               />
             </div>
 
-            {claimSuccessMessage ? <p>{claimSuccessMessage}</p> : null}
-            {claimErrorMessage ? <p role="alert">{claimErrorMessage}</p> : null}
+            {claimSuccessMessage ? <p className="message-success">{claimSuccessMessage}</p> : null}
+            {claimErrorMessage ? <p className="message-error" role="alert">{claimErrorMessage}</p> : null}
 
             <button type="submit" disabled={isSubmittingClaim}>
               {isSubmittingClaim ? 'Submitting claim...' : 'Submit claim'}

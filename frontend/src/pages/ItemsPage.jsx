@@ -2,8 +2,16 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 import apiClient from '../api/client';
+import './ItemsPage.css';
 
 const PAGE_LIMIT = 10;
+
+const STATUS_CLASS_MAP = {
+  LOST: 'status-badge--lost',
+  FOUND: 'status-badge--found',
+  CLAIMED: 'status-badge--claimed',
+  RETURNED: 'status-badge--returned',
+};
 
 function ItemsPage() {
   const [items, setItems] = useState([]);
@@ -42,37 +50,44 @@ function ItemsPage() {
   const hasNext = page < totalPages;
 
   return (
-    <main>
+    <main className="page">
       <h1>Items</h1>
 
-      {isLoading && <p>Loading items...</p>}
-      {!isLoading && error && <p>{error}</p>}
+      {isLoading && <p className="muted-text">Loading items...</p>}
+      {!isLoading && error && <p className="message-error" role="alert">{error}</p>}
 
       {!isLoading && !error && (
         <>
           {items.length === 0 ? (
-            <p>No items found.</p>
+            <p className="muted-text">No items found.</p>
           ) : (
-            <ul>
-              {items.map((item) => (
-                <li key={item._id}>
-                <Link to={`/items/${item._id}`}>
-                <p>Title: {item.title}</p>
-                <p>Category: {item.category}</p>
-                <p>Status: {item.status}</p>
-                <p>Location: {item.location}</p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+            <ul className="items-list">
+              {items.map((item) => {
+                const statusClass = STATUS_CLASS_MAP[item.status] || 'status-badge--lost';
 
+                return (
+                  <li key={item._id}>
+                    <Link className="item-card-link" to={`/items/${item._id}`}>
+                      <article className="item-card">
+                        <div className="item-card__head">
+                          <h2 className="item-card__title">{item.title}</h2>
+                          <span className={`status-badge ${statusClass}`}>{item.status}</span>
+                        </div>
+                        <p className="item-meta">Category: {item.category}</p>
+                        <p className="item-meta">Location: {item.location}</p>
+                      </article>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           )}
 
-          <div>
+          <div className="pagination">
             <button type="button" onClick={() => setPage((currentPage) => currentPage - 1)} disabled={!hasPrevious}>
               Previous
             </button>
-            <span>
+            <span className="muted-text">
               Page {page} of {totalPages}
             </span>
             <button type="button" onClick={() => setPage((currentPage) => currentPage + 1)} disabled={!hasNext}>

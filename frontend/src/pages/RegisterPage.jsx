@@ -60,61 +60,63 @@ function RegisterPage() {
   };
 
   return (
-    <main>
+    <main className="page">
       <h1>Register</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="name">Name</label>
-          <input
-            id="name"
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            autoComplete="name"
-            required
-          />
-        </div>
+      <section className="card">
+        <form className="form" onSubmit={handleSubmit}>
+          <div className="form-row">
+            <label htmlFor="name">Name</label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              autoComplete="name"
+              required
+            />
+          </div>
 
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            required
-          />
-        </div>
+          <div className="form-row">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              required
+            />
+          </div>
 
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="new-password"
-            required
-          />
-        </div>
+          <div className="form-row">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
 
-        {errorMessages.length > 0 ? (
-          hasMultipleErrors ? (
-            <ul role="alert">
-              {errorMessages.map((message) => (
-                <li key={message}>{message}</li>
-              ))}
-            </ul>
-          ) : (
-            <p role="alert">{errorMessages[0]}</p>
-          )
-        ) : null}
+          {errorMessages.length > 0 ? (
+            hasMultipleErrors ? (
+              <ul className="message-error" role="alert">
+                {errorMessages.map((message) => (
+                  <li key={message}>{message}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="message-error" role="alert">{errorMessages[0]}</p>
+            )
+          ) : null}
 
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Registering...' : 'Register'}
-        </button>
-      </form>
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Registering...' : 'Register'}
+          </button>
+        </form>
+      </section>
 
       <p>
         Already have an account? <Link to="/login">Login</Link>
