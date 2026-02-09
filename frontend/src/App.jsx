@@ -11,14 +11,16 @@ function App() {
   return (
     <>
       <Navbar />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/items" element={<ItemsPage />} />
-        <Route path="/items/:id" element={<ItemDetailPage />} />
-        <Route path="/create" element={<CreateItemPage />} />
-        <Route path="*" element={<Navigate to="/items" replace />} />
-      </Routes>
+      <div className="layout-container">
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/items" element={<ItemsPage />} />
+          <Route path="/items/:id" element={<ItemDetailPage />} />
+          <Route path="/create" element={<CreateItemPage />} />
+          <Route path="*" element={<Navigate to="/items" replace />} />
+        </Routes>
+      </div>
     </>
   );
 }

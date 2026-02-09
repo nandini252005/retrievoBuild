@@ -1,0 +1,74 @@
+.items-list {
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+}
+
+.item-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.item-card {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background: var(--color-white);
+}
+
+.item-card-link:hover .item-card,
+.item-card-link:focus-visible .item-card {
+  border-color: var(--color-navy-soft);
+}
+
+.item-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.item-card__title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-navy);
+}
+
+.item-meta {
+  margin: 0;
+  color: var(--color-gray-700);
+}
+
+.status-badge {
+  display: inline-flex;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  letter-spacing: 0.03em;
+}
+
+.status-badge--lost {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.status-badge--found {
+  background: #dbeafe;
+  color: var(--color-navy);
+}
+
+.status-badge--claimed {
+  background: #ede9e7;
+  color: var(--color-claimed);
+}
+
+.status-badge--returned {
+  background: #dcfce7;
+  color: var(--color-success);
+}

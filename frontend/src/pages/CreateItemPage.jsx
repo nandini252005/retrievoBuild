@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import apiClient from '../api/client';
 
 function CreateItemPage() {
@@ -12,8 +13,8 @@ function CreateItemPage() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setIsSubmitting(true);
 
@@ -26,44 +27,51 @@ function CreateItemPage() {
       });
 
       navigate('/items');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create item');
+    } catch (submitError) {
+      setError(submitError.response?.data?.message || 'Failed to create item');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <main>
+    <main className="page">
       <h1>Create Item</h1>
 
-      {error && <p role="alert">{error}</p>}
+      {error && <p className="message-error" role="alert">{error}</p>}
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Title</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required />
-        </div>
+      <section className="card">
+        <form className="form" onSubmit={handleSubmit}>
+          <div className="form-row">
+            <label htmlFor="title">Title</label>
+            <input id="title" value={title} onChange={(event) => setTitle(event.target.value)} required />
+          </div>
 
-        <div>
-          <label>Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} required />
-        </div>
+          <div className="form-row">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              required
+            />
+          </div>
 
-        <div>
-          <label>Category</label>
-          <input value={category} onChange={(e) => setCategory(e.target.value)} required />
-        </div>
+          <div className="form-row">
+            <label htmlFor="category">Category</label>
+            <input id="category" value={category} onChange={(event) => setCategory(event.target.value)} required />
+          </div>
 
-        <div>
-          <label>Location</label>
-          <input value={location} onChange={(e) => setLocation(e.target.value)} required />
-        </div>
+          <div className="form-row">
+            <label htmlFor="location">Location</label>
+            <input id="location" value={location} onChange={(event) => setLocation(event.target.value)} required />
+          </div>
 
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating...' : 'Create Item'}
-        </button>
-      </form>
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating...' : 'Create Item'}
+          </button>
+        </form>
+      </section>
     </main>
   );
 }
