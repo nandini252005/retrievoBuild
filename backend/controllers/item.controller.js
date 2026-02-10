@@ -10,7 +10,7 @@ const VALID_STATUS_TRANSITIONS = {
 
 const createItem = async (req, res) => {
   try {
-    const { title, description, category, location, images } = req.body;
+    const { title, description, category, location, images, status } = req.body;
 
     if (!title || !description || !category || !location) {
       return res.status(400).json({
@@ -18,21 +18,27 @@ const createItem = async (req, res) => {
       });
     }
 
+    // ✅ Validate status explicitly
+    const allowedStatuses = ['LOST', 'FOUND'];
+    const finalStatus = allowedStatuses.includes(status) ? status : 'LOST';
+
     const item = await Item.create({
       title,
       description,
       category,
       location,
       images: Array.isArray(images) ? images : [],
-      status: 'LOST',
+      status: finalStatus, // ✅ USE CLIENT VALUE
       createdBy: req.user.id,
     });
 
     return res.status(201).json(item);
   } catch (error) {
+    console.error('createItem error:', error);
     return res.status(500).json({ message: 'Failed to create item' });
   }
 };
+
 
 const getItems = async (req, res) => {
   try {
