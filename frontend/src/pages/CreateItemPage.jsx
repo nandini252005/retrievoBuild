@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import apiClient from '../api/client';
 
 function CreateItemPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const initialStatus = location.state?.defaultStatus === 'FOUND' ? 'FOUND' : 'LOST';
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
-  const [location, setLocation] = useState('');
+  const [locationText, setLocationText] = useState('');
+  const [status, setStatus] = useState(initialStatus);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -23,7 +27,8 @@ function CreateItemPage() {
         title,
         description,
         category,
-        location,
+        location: locationText,
+        status,
       });
 
       navigate('/items');
@@ -64,7 +69,15 @@ function CreateItemPage() {
 
           <div className="form-row">
             <label htmlFor="location">Location</label>
-            <input id="location" value={location} onChange={(event) => setLocation(event.target.value)} required />
+            <input id="location" value={locationText} onChange={(event) => setLocationText(event.target.value)} required />
+          </div>
+
+          <div className="form-row">
+            <label htmlFor="status">Status</label>
+            <select id="status" value={status} onChange={(event) => setStatus(event.target.value)}>
+              <option value="LOST">LOST</option>
+              <option value="FOUND">FOUND</option>
+            </select>
           </div>
 
           <button type="submit" disabled={isSubmitting}>
