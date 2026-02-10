@@ -1,3 +1,76 @@
+.dashboard-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.dashboard-action-card {
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.75rem;
+  padding: 1.2rem;
+  min-height: 8.5rem;
+  text-align: left;
+  display: grid;
+  align-content: space-between;
+  gap: 0.5rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.dashboard-action-card:hover,
+.dashboard-action-card:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(15, 42, 74, 0.1);
+}
+
+.dashboard-action-card__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.dashboard-action-card__hint {
+  color: var(--color-gray-700);
+  font-size: 0.95rem;
+}
+
+.dashboard-action-card--lost {
+  background: var(--color-white);
+  border-color: #adc0d8;
+  color: var(--color-navy);
+}
+
+.dashboard-action-card--lost:hover,
+.dashboard-action-card--lost:focus-visible {
+  border-color: var(--color-navy);
+}
+
+.dashboard-action-card--found {
+  background: #ecfdf3;
+  border-color: #86efac;
+  color: #14532d;
+}
+
+.dashboard-action-card--found:hover,
+.dashboard-action-card--found:focus-visible {
+  border-color: var(--color-success);
+}
+
+.dashboard-action-card--reports {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-300);
+  color: var(--color-gray-900);
+}
+
+.dashboard-action-card--reports:hover,
+.dashboard-action-card--reports:focus-visible {
+  border-color: var(--color-navy-soft);
+}
+
+.reports-section {
+  display: grid;
+  gap: 0.9rem;
+  scroll-margin-top: 1rem;
+}
+
 .items-list {
   list-style: none;
   display: grid;
@@ -71,4 +144,20 @@
 .status-badge--returned {
   background: #dcfce7;
   color: var(--color-success);
+}
+
+@media (max-width: 900px) {
+  .dashboard-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-action-card {
+    min-height: 7.5rem;
+  }
 }

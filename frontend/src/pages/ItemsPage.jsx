@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 
 import apiClient from '../api/client';
 import './ItemsPage.css';
@@ -14,6 +14,9 @@ const STATUS_CLASS_MAP = {
 };
 
 function ItemsPage() {
+  const navigate = useNavigate();
+  const reportsSectionRef = useRef(null);
+
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -49,53 +52,99 @@ function ItemsPage() {
   const hasPrevious = page > 1;
   const hasNext = page < totalPages;
 
+  const handleOpenCreatePage = (defaultStatus) => {
+    navigate('/create', {
+      state: { defaultStatus },
+    });
+  };
+
+  const handleViewReports = () => {
+    reportsSectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
+
   return (
     <main className="page">
-      <h1>Items</h1>
+      <h1>Items Dashboard</h1>
 
-      {isLoading && <p className="muted-text">Loading items...</p>}
-      {!isLoading && error && <p className="message-error" role="alert">{error}</p>}
+      <section className="dashboard-actions" aria-label="Report actions">
+        <button
+          className="dashboard-action-card dashboard-action-card--lost"
+          type="button"
+          onClick={() => handleOpenCreatePage('LOST')}
+        >
+          <span className="dashboard-action-card__title">Report Lost Item</span>
+          <span className="dashboard-action-card__hint">Submit a new lost item report.</span>
+        </button>
 
-      {!isLoading && !error && (
-        <>
-          {items.length === 0 ? (
-            <p className="muted-text">No items found.</p>
-          ) : (
-            <ul className="items-list">
-              {items.map((item) => {
-                const statusClass = STATUS_CLASS_MAP[item.status] || 'status-badge--lost';
+        <button
+          className="dashboard-action-card dashboard-action-card--found"
+          type="button"
+          onClick={() => handleOpenCreatePage('FOUND')}
+        >
+          <span className="dashboard-action-card__title">Report Found Item</span>
+          <span className="dashboard-action-card__hint">Record an item you found.</span>
+        </button>
 
-                return (
-                  <li key={item._id}>
-                    <Link className="item-card-link" to={`/items/${item._id}`}>
-                      <article className="item-card">
-                        <div className="item-card__head">
-                          <h2 className="item-card__title">{item.title}</h2>
-                          <span className={`status-badge ${statusClass}`}>{item.status}</span>
-                        </div>
-                        <p className="item-meta">Category: {item.category}</p>
-                        <p className="item-meta">Location: {item.location}</p>
-                      </article>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+        <button
+          className="dashboard-action-card dashboard-action-card--reports"
+          type="button"
+          onClick={handleViewReports}
+        >
+          <span className="dashboard-action-card__title">View Reports</span>
+          <span className="dashboard-action-card__hint">Jump to the existing item reports list.</span>
+        </button>
+      </section>
 
-          <div className="pagination">
-            <button type="button" onClick={() => setPage((currentPage) => currentPage - 1)} disabled={!hasPrevious}>
-              Previous
-            </button>
-            <span className="muted-text">
-              Page {page} of {totalPages}
-            </span>
-            <button type="button" onClick={() => setPage((currentPage) => currentPage + 1)} disabled={!hasNext}>
-              Next
-            </button>
-          </div>
-        </>
-      )}
+      <section ref={reportsSectionRef} id="reports-list" className="reports-section" aria-label="Item reports">
+        <h2>Item Reports</h2>
+
+        {isLoading && <p className="muted-text">Loading items...</p>}
+        {!isLoading && error && <p className="message-error" role="alert">{error}</p>}
+
+        {!isLoading && !error && (
+          <>
+            {items.length === 0 ? (
+              <p className="muted-text">No items found.</p>
+            ) : (
+              <ul className="items-list">
+                {items.map((item) => {
+                  const statusClass = STATUS_CLASS_MAP[item.status] || 'status-badge--lost';
+
+                  return (
+                    <li key={item._id}>
+                      <Link className="item-card-link" to={`/items/${item._id}`}>
+                        <article className="item-card">
+                          <div className="item-card__head">
+                            <h3 className="item-card__title">{item.title}</h3>
+                            <span className={`status-badge ${statusClass}`}>{item.status}</span>
+                          </div>
+                          <p className="item-meta">Category: {item.category}</p>
+                          <p className="item-meta">Location: {item.location}</p>
+                        </article>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            <div className="pagination">
+              <button type="button" onClick={() => setPage((currentPage) => currentPage - 1)} disabled={!hasPrevious}>
+                Previous
+              </button>
+              <span className="muted-text">
+                Page {page} of {totalPages}
+              </span>
+              <button type="button" onClick={() => setPage((currentPage) => currentPage + 1)} disabled={!hasNext}>
+                Next
+              </button>
+            </div>
+          </>
+        )}
+      </section>
     </main>
   );
 }
