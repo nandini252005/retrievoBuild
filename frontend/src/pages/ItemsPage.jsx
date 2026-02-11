@@ -22,19 +22,41 @@ function ItemsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [filters, setFilters] = useState({
+    status: 'All',
+    category: '',
+    location: '',
+  });
+  const [appliedFilters, setAppliedFilters] = useState({
+    status: 'All',
+    category: '',
+    location: '',
+  });
 
   useEffect(() => {
     const fetchItems = async () => {
       setIsLoading(true);
       setError('');
 
+      const params = {
+        page,
+        limit: PAGE_LIMIT,
+      };
+
+      if (appliedFilters.status && appliedFilters.status !== 'All') {
+        params.status = appliedFilters.status;
+      }
+
+      if (appliedFilters.category.trim()) {
+        params.category = appliedFilters.category.trim();
+      }
+
+      if (appliedFilters.location.trim()) {
+        params.location = appliedFilters.location.trim();
+      }
+
       try {
-        const response = await apiClient.get('/items', {
-          params: {
-            page,
-            limit: PAGE_LIMIT,
-          },
-        });
+        const response = await apiClient.get('/items', { params });
 
         setItems(response.data.items || []);
         setTotalPages(response.data.totalPages || 1);
@@ -47,7 +69,7 @@ function ItemsPage() {
     };
 
     fetchItems();
-  }, [page]);
+  }, [page, appliedFilters]);
 
   const hasPrevious = page > 1;
   const hasNext = page < totalPages;
@@ -63,6 +85,29 @@ function ItemsPage() {
       behavior: 'smooth',
       block: 'start',
     });
+  };
+
+  const handleFilterChange = (event) => {
+    const { name, value } = event.target;
+
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      [name]: value,
+    }));
+  };
+
+  const handleSearch = () => {
+    setPage(1);
+    setAppliedFilters({
+      status: filters.status,
+      category: filters.category,
+      location: filters.location,
+    });
+  };
+
+  const handleFilterSubmit = (event) => {
+    event.preventDefault();
+    handleSearch();
   };
 
   return (
@@ -101,13 +146,65 @@ function ItemsPage() {
       <section ref={reportsSectionRef} id="reports-list" className="reports-section" aria-label="Item reports">
         <h2>Item Reports</h2>
 
-        {isLoading && <p className="muted-text">Loading items...</p>}
+        <form className="filters" onSubmit={handleFilterSubmit} aria-label="Filter item reports">
+          <div className="filters__grid">
+            <label className="filters__field" htmlFor="status-filter">
+              <span>Status</span>
+              <select
+                id="status-filter"
+                name="status"
+                value={filters.status}
+                onChange={handleFilterChange}
+              >
+                <option value="All">All</option>
+                <option value="LOST">LOST</option>
+                <option value="FOUND">FOUND</option>
+                <option value="CLAIMED">CLAIMED</option>
+                <option value="RETURNED">RETURNED</option>
+              </select>
+            </label>
+
+            <label className="filters__field" htmlFor="category-filter">
+              <span>Category</span>
+              <input
+                id="category-filter"
+                name="category"
+                type="text"
+                placeholder="e.g. phone"
+                value={filters.category}
+                onChange={handleFilterChange}
+              />
+            </label>
+
+            <label className="filters__field" htmlFor="location-filter">
+              <span>Location</span>
+              <input
+                id="location-filter"
+                name="location"
+                type="text"
+                placeholder="e.g. library"
+                value={filters.location}
+                onChange={handleFilterChange}
+              />
+            </label>
+          </div>
+
+          <button className="filters__search-button" type="submit">Search</button>
+        </form>
+
+        {isLoading && (
+          <div className="loading-indicator" role="status" aria-live="polite">
+            <span className="loading-indicator__spinner" aria-hidden="true" />
+            <p className="muted-text">Loading items...</p>
+          </div>
+        )}
+
         {!isLoading && error && <p className="message-error" role="alert">{error}</p>}
 
         {!isLoading && !error && (
           <>
             {items.length === 0 ? (
-              <p className="muted-text">No items found.</p>
+              <p className="muted-text">No items match your filters.</p>
             ) : (
               <ul className="items-list">
                 {items.map((item) => {
