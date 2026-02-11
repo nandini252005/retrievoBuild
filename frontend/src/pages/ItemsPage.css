@@ -71,6 +71,76 @@
   scroll-margin-top: 1rem;
 }
 
+.filters {
+  display: grid;
+  gap: 0.9rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.filters__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.filters__field {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--color-gray-700);
+}
+
+.filters__field input,
+.filters__field select {
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.45rem;
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+  color: var(--color-gray-900);
+  background: var(--color-white);
+}
+
+.filters__field input:focus-visible,
+.filters__field select:focus-visible {
+  outline: 2px solid var(--color-navy-soft);
+  outline-offset: 1px;
+  border-color: var(--color-navy-soft);
+}
+
+.filters__search-button {
+  justify-self: start;
+  border-radius: 0.45rem;
+  padding: 0.55rem 1rem;
+}
+
+.loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.loading-indicator__spinner {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 999px;
+  border: 2px solid var(--color-gray-300);
+  border-top-color: var(--color-navy-soft);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .items-list {
   list-style: none;
   display: grid;
@@ -127,27 +197,31 @@
 }
 
 .status-badge--lost {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .status-badge--found {
   background: #dbeafe;
-  color: var(--color-navy);
+  color: #1d4ed8;
 }
 
 .status-badge--claimed {
-  background: #ede9e7;
-  color: var(--color-claimed);
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .status-badge--returned {
   background: #dcfce7;
-  color: var(--color-success);
+  color: #15803d;
 }
 
 @media (max-width: 900px) {
   .dashboard-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filters__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -159,5 +233,20 @@
 
   .dashboard-action-card {
     min-height: 7.5rem;
+  }
+
+  .filters {
+    position: sticky;
+    top: 0.5rem;
+    z-index: 2;
+  }
+
+  .filters__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters__search-button {
+    width: 100%;
+    justify-self: stretch;
   }
 }
