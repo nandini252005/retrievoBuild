@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
+
 const { Item } = require('../models');
+
 
 const VALID_STATUS_TRANSITIONS = {
   LOST: 'FOUND',
@@ -8,9 +10,11 @@ const VALID_STATUS_TRANSITIONS = {
   CLAIMED: 'RETURNED',
 };
 
+
 const createItem = async (req, res) => {
   try {
     const { title, description, category, location, images, status } = req.body;
+
 
     if (!title || !description || !category || !location) {
       return res.status(400).json({
@@ -18,9 +22,11 @@ const createItem = async (req, res) => {
       });
     }
 
+
     // ✅ Validate status explicitly
     const allowedStatuses = ['LOST', 'FOUND'];
     const finalStatus = allowedStatuses.includes(status) ? status : 'LOST';
+
 
     const item = await Item.create({
       title,
@@ -32,6 +38,7 @@ const createItem = async (req, res) => {
       createdBy: req.user.id,
     });
 
+
     return res.status(201).json(item);
   } catch (error) {
     console.error('createItem error:', error);
@@ -40,24 +47,37 @@ const createItem = async (req, res) => {
 };
 
 
+
+
 const getItems = async (req, res) => {
   try {
     const parsedPage = Number.parseInt(req.query.page, 10);
     const parsedLimit = Number.parseInt(req.query.limit, 10);
 
+
     const page = Number.isNaN(parsedPage) || parsedPage <= 0 ? 1 : parsedPage;
     const limit = Number.isNaN(parsedLimit) || parsedLimit <= 0 ? 10 : parsedLimit;
     const skip = (page - 1) * limit;
 
+
     const filter = {};
+    // If mine=true → only items created by logged-in user
+if (req.query.mine === 'true') {
+  filter.createdBy = req.user.id;
+}
+
+
+
 
     if (req.query.status) {
       filter.status = req.query.status;
     }
 
+
     if (req.query.category) {
       filter.category = req.query.category;
     }
+
 
     const [items, totalItems] = await Promise.all([
       Item.find(filter)
@@ -68,7 +88,9 @@ const getItems = async (req, res) => {
       Item.countDocuments(filter),
     ]);
 
+
     const totalPages = Math.ceil(totalItems / limit);
+
 
     return res.status(200).json({
       items,
@@ -87,19 +109,25 @@ const getItems = async (req, res) => {
 }
 
 
+
+
 const getItemById = async (req, res) => {
   try {
     const { id } = req.params;
+
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid item id' });
     }
 
+
     const item = await Item.findById(id).populate('createdBy', 'name email');
+
 
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
+
 
     return res.status(200).json(item);
   } catch (error) {
@@ -107,30 +135,38 @@ const getItemById = async (req, res) => {
   }
 };
 
+
 const updateItemStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid item id' });
     }
+
 
     if (!status) {
       return res.status(400).json({ message: 'status is required' });
     }
 
+
     const item = await Item.findById(id);
+
 
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
 
+
     if (item.createdBy.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Forbidden: only owner can update item status' });
     }
 
+
     const expectedNextStatus = VALID_STATUS_TRANSITIONS[item.status];
+
 
     if (!expectedNextStatus || status !== expectedNextStatus) {
       return res.status(400).json({
@@ -138,8 +174,10 @@ const updateItemStatus = async (req, res) => {
       });
     }
 
+
     item.status = status;
     await item.save();
+
 
     return res.status(200).json(item);
   } catch (error) {
@@ -147,9 +185,13 @@ const updateItemStatus = async (req, res) => {
   }
 };
 
+
 module.exports = {
   createItem,
   getItems,
   getItemById,
   updateItemStatus,
 };
+
+
+
