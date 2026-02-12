@@ -1,0 +1,39 @@
+.reports-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.report-card {
+  background: #f8fafc;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.status-badge--navy {
+  color: #0f2a4a;
+  background: #dbeafe;
+}
+
+.status-badge--gray {
+  color: #374151;
+  background: #e5e7eb;
+}
+
+.status-badge--green {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.status-badge--red {
+  color: #b91c1c;
+  background: #fee2e2;
+}

@@ -5,6 +5,7 @@ import CreateItemPage from './pages/CreateItemPage';
 import ItemDetailPage from './pages/ItemDetailPage';
 import ItemsPage from './pages/ItemsPage';
 import LoginPage from './pages/LoginPage';
+import MyReportsPage from './pages/MyReportsPage';
 import RegisterPage from './pages/RegisterPage';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/items" element={<ItemsPage />} />
           <Route path="/items/:id" element={<ItemDetailPage />} />
           <Route path="/create" element={<CreateItemPage />} />
+          <Route path="/my-reports" element={<MyReportsPage />} />
           <Route path="*" element={<Navigate to="/items" replace />} />
         </Routes>
       </div>

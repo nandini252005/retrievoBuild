@@ -23,7 +23,7 @@ function Navbar() {
           {isAuthenticated ? (
             <>
               <NavLink
-                to="/"
+                to="/items"
                 className={({ isActive }) => `navbar__link${isActive ? ' navbar__link--active' : ''}`}
               >
                 Home
