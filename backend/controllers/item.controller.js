@@ -3,11 +3,24 @@ const mongoose = require('mongoose');
 
 const { Item } = require('../models');
 
+const isValidStatusTransition = (currentStatus, nextStatus, reportType) => {
+  if ((currentStatus === 'LOST' || currentStatus === 'FOUND') && nextStatus === 'PENDING') {
+    return true;
+  }
 
-const VALID_STATUS_TRANSITIONS = {
-  LOST: 'FOUND',
-  FOUND: 'CLAIMED',
-  CLAIMED: 'RETURNED',
+  if (currentStatus === 'PENDING' && nextStatus === 'APPROVED') {
+    return true;
+  }
+
+  if (currentStatus === 'APPROVED' && reportType === 'LOST' && nextStatus === 'RETURNED') {
+    return true;
+  }
+
+  if (currentStatus === 'APPROVED' && reportType === 'FOUND' && nextStatus === 'CLAIMED') {
+    return true;
+  }
+
+  return false;
 };
 
 
@@ -35,6 +48,7 @@ const createItem = async (req, res) => {
       location,
       images: Array.isArray(images) ? images : [],
       status: finalStatus, // ✅ USE CLIENT VALUE
+      reportType: finalStatus,
       createdBy: req.user.id,
     });
 
@@ -165,12 +179,9 @@ const updateItemStatus = async (req, res) => {
     }
 
 
-    const expectedNextStatus = VALID_STATUS_TRANSITIONS[item.status];
-
-
-    if (!expectedNextStatus || status !== expectedNextStatus) {
+    if (!isValidStatusTransition(item.status, status, item.reportType)) {
       return res.status(400).json({
-        message: `Invalid status transition. Allowed transition: ${item.status} -> ${expectedNextStatus || 'NONE'}`,
+        message: `Invalid status transition for ${item.reportType} flow: ${item.status} -> ${status}`,
       });
     }
 
@@ -192,6 +203,5 @@ module.exports = {
   getItemById,
   updateItemStatus,
 };
-
 
 

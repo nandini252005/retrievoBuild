@@ -19,8 +19,13 @@ const itemSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['LOST', 'FOUND', 'CLAIMED', 'RETURNED'],
+      enum: ['LOST', 'FOUND', 'PENDING', 'APPROVED', 'RETURNED', 'CLAIMED'],
       default: 'LOST',
+      required: true,
+    },
+    reportType: {
+      type: String,
+      enum: ['LOST', 'FOUND'],
       required: true,
     },
     location: {
