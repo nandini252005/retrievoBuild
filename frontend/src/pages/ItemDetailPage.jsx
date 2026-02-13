@@ -37,7 +37,9 @@ function ItemDetailPage() {
 
   const currentUserId = user?._id || user?.id || null;
   const isOwner = Boolean(currentUserId && ownerId && currentUserId === ownerId);
-  const canShowClaimForm = isAuthenticated && item?.status === 'FOUND' && !isOwner;
+
+  // Updated claim visibility: only authenticated, non-owner users can claim when item is LOST.
+  const canShowClaimForm = isAuthenticated && item?.status === 'LOST' && !isOwner;
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -116,22 +118,6 @@ function ItemDetailPage() {
       setIsSubmittingClaim(false);
     }
   };
-
-  const handleMarkAsFound = async () => {
-  try {
-    await apiClient.patch(`/items/${id}/status`, {
-      status: 'FOUND',
-    });
-
-    // Update UI immediately
-    setItem((prev) =>
-      prev ? { ...prev, status: 'FOUND' } : prev
-    );
-  } catch (err) {
-    alert(err.response?.data?.message || 'Failed to mark item as found');
-  }
-};
-
 
   const handleReviewClaim = async (claimId, decision) => {
     setReviewErrorMessage('');
@@ -212,24 +198,12 @@ function ItemDetailPage() {
         <p><strong>Creator:</strong> {item.createdBy?.name || item.createdBy?.email || 'Unknown'}</p>
       </section>
 
-      {isAuthenticated &&
-  user &&
-  item.status === 'LOST' &&
-  item.createdBy?._id === user.id && (
-    <section className="card">
-      <button
-        onClick={handleMarkAsFound}
-        className="btn-primary"
-      >
-        Mark as Found
-      </button>
-    </section>
-)}
+      {/* Removed old owner-only "Mark as Found" action block for LOST items. */}
 
-
+      {/* Updated claim form section for new flow: "I Found This Item" shown only per canShowClaimForm. */}
       {canShowClaimForm ? (
         <section className="card">
-          <h2>Claim this item</h2>
+          <h2>I Found This Item</h2>
           <form className="form" onSubmit={handleClaimSubmit}>
             <div className="form-row">
               <label htmlFor="claim-message">Message (optional)</label>
