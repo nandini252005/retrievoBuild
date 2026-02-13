@@ -151,6 +151,8 @@ const reviewClaim = (decision) => async (req, res) => {
 
     if (decision === 'APPROVED') {
       claim.status = 'APPROVED';
+      item.status = 'APPROVED';
+      await item.save();
     } else {
       claim.status = 'REJECTED';
     }
@@ -209,5 +211,4 @@ module.exports = {
   approveClaim: reviewClaim('APPROVED'),
   rejectClaim: reviewClaim('REJECTED'),
 };
-
 
