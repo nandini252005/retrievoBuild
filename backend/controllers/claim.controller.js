@@ -55,6 +55,9 @@ const createClaim = async (req, res) => {
       status: 'PENDING',
     });
 
+    item.status = 'PENDING';
+    await item.save();
+
 
     res.status(201).json(claim);
   } catch (error) {
@@ -138,7 +141,7 @@ const reviewClaim = (decision) => async (req, res) => {
     }
 
 
-    if (!['LOST', 'FOUND'].includes(item.status)) {
+    if (!['LOST', 'FOUND', 'PENDING'].includes(item.status)) {
   return res.status(400).json({
     message: 'Item cannot be reviewed in current state',
   });
@@ -148,8 +151,6 @@ const reviewClaim = (decision) => async (req, res) => {
 
     if (decision === 'APPROVED') {
       claim.status = 'APPROVED';
-      item.status = 'CLAIMED';
-      await item.save();
     } else {
       claim.status = 'REJECTED';
     }
@@ -208,6 +209,5 @@ module.exports = {
   approveClaim: reviewClaim('APPROVED'),
   rejectClaim: reviewClaim('REJECTED'),
 };
-
 
 
