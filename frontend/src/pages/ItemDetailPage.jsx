@@ -22,6 +22,23 @@ function ItemDetailPage() {
   const [claimsError, setClaimsError] = useState('');
   const [reviewErrorMessage, setReviewErrorMessage] = useState('');
   const [reviewingClaimIds, setReviewingClaimIds] = useState({});
+  const [isUpdatingItemStatus, setIsUpdatingItemStatus] = useState(false);
+  const [statusUpdateErrorMessage, setStatusUpdateErrorMessage] = useState('');
+
+  const fetchItem = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await apiClient.get(`/items/${id}`);
+      setItem(response.data || null);
+    } catch (fetchError) {
+      setItem(null);
+      setError(fetchError.response?.data?.message || 'Failed to fetch item');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const ownerId = useMemo(() => {
     if (!item?.createdBy) {
@@ -41,22 +58,15 @@ function ItemDetailPage() {
   // Updated claim visibility: only authenticated, non-owner users can claim when item is LOST.
   const canShowClaimForm = isAuthenticated && item?.status === 'LOST' && !isOwner;
 
+  const ownerStatusActionLabel =
+    item?.reportType === 'LOST' ? 'Mark as Returned' : item?.reportType === 'FOUND' ? 'Mark as Claimed' : '';
+
+  const ownerStatusAction =
+    item?.reportType === 'LOST' ? 'RETURNED' : item?.reportType === 'FOUND' ? 'CLAIMED' : null;
+
+  const canShowOwnerStatusAction = Boolean(isOwner && item?.status === 'APPROVED' && ownerStatusAction);
+
   useEffect(() => {
-    const fetchItem = async () => {
-      setIsLoading(true);
-      setError('');
-
-      try {
-        const response = await apiClient.get(`/items/${id}`);
-        setItem(response.data || null);
-      } catch (fetchError) {
-        setItem(null);
-        setError(fetchError.response?.data?.message || 'Failed to fetch item');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchItem();
   }, [id]);
 
@@ -160,6 +170,26 @@ function ItemDetailPage() {
     }
   };
 
+  const handleOwnerStatusAction = async () => {
+    if (!ownerStatusAction) {
+      return;
+    }
+
+    setStatusUpdateErrorMessage('');
+    setIsUpdatingItemStatus(true);
+
+    try {
+      await apiClient.patch(`/items/${id}/status`, {
+        status: ownerStatusAction,
+      });
+      await fetchItem();
+    } catch (statusError) {
+      setStatusUpdateErrorMessage(statusError.response?.data?.message || 'Failed to update item status');
+    } finally {
+      setIsUpdatingItemStatus(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <main className="page">
@@ -199,6 +229,17 @@ function ItemDetailPage() {
       </section>
 
       {/* Removed old owner-only "Mark as Found" action block for LOST items. */}
+
+      {canShowOwnerStatusAction ? (
+        <section className="card">
+          <button type="button" onClick={handleOwnerStatusAction} disabled={isUpdatingItemStatus}>
+            {isUpdatingItemStatus ? 'Updating status...' : ownerStatusActionLabel}
+          </button>
+          {statusUpdateErrorMessage ? (
+            <p className="message-error" role="alert">{statusUpdateErrorMessage}</p>
+          ) : null}
+        </section>
+      ) : null}
 
       {/* Updated claim form section for new flow: "I Found This Item" shown only per canShowClaimForm. */}
       {canShowClaimForm ? (
