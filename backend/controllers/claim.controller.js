@@ -24,9 +24,12 @@ const createClaim = async (req, res) => {
     }
 
 
-    if (item.status !== 'FOUND') {
-      return res.status(400).json({ message: 'Claims allowed only when item is FOUND' });
-    }
+   if (!['LOST', 'FOUND'].includes(item.status)) {
+  return res.status(400).json({
+    message: 'Claims allowed only when item is LOST or FOUND',
+  });
+}
+
 
 
     if (item.createdBy.toString() === req.user.id) {
@@ -135,9 +138,12 @@ const reviewClaim = (decision) => async (req, res) => {
     }
 
 
-    if (item.status !== 'FOUND') {
-      return res.status(400).json({ message: 'Item must be FOUND' });
-    }
+    if (!['LOST', 'FOUND'].includes(item.status)) {
+  return res.status(400).json({
+    message: 'Item cannot be reviewed in current state',
+  });
+}
+
 
 
     if (decision === 'APPROVED') {
