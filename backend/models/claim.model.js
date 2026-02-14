@@ -23,6 +23,11 @@ const claimSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    previousItemStatus: {
+      type: String,
+      enum: ['LOST', 'FOUND'],
+      required: true,
+    },
   },
   {
     timestamps: true,
