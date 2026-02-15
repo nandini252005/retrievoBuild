@@ -9,8 +9,20 @@ class HttpError extends Error {
   }
 }
 
+const isClaimableItemState = (item) => {
+  if (!item) {
+    return false;
+  }
+
+  if (item.reportType === 'FOUND') {
+    return !['CLAIMED', 'RETURNED'].includes(item.status);
+  }
+
+  return item.status === 'LOST';
+};
+
 /**
- * Create a claim (non-owner, item must be FOUND)
+ * Create a claim (non-owner, item must be claimable in current flow)
  */
 const createClaim = async (req, res) => {
   const session = await mongoose.startSession();
@@ -31,8 +43,8 @@ const createClaim = async (req, res) => {
         throw new HttpError(404, 'Item not found');
       }
 
-      if (!['LOST', 'FOUND'].includes(item.status)) {
-        throw new HttpError(400, 'Claims allowed only when item is LOST or FOUND');
+      if (!isClaimableItemState(item)) {
+        throw new HttpError(400, 'This item cannot be claimed at this time');
       }
 
       if (item.createdBy.toString() === req.user.id) {
@@ -55,7 +67,7 @@ const createClaim = async (req, res) => {
             claimantId: req.user.id,
             message: message || '',
             status: 'PENDING',
-            previousItemStatus: item.status,
+            previousItemStatus: item.reportType === 'FOUND' ? 'FOUND' : item.status,
           },
         ],
         { session }
@@ -74,7 +86,7 @@ const createClaim = async (req, res) => {
       return res.status(error.status).json({ message: error.message });
     }
 
-    res.status(500).json({ message: 'Failed to create claim' });
+    res.status(500).json({ message: 'This item cannot be claimed at this time' });
   } finally {
     session.endSession();
   }
@@ -149,7 +161,7 @@ const reviewClaim = (decision) => async (req, res) => {
         throw new HttpError(400, 'Claim already reviewed');
       }
 
-      if (!['LOST', 'FOUND', 'PENDING'].includes(item.status)) {
+      if (!['LOST', 'FOUND', 'PENDING', 'APPROVED'].includes(item.status)) {
         throw new HttpError(400, 'Item cannot be reviewed in current state');
       }
 
@@ -157,7 +169,7 @@ const reviewClaim = (decision) => async (req, res) => {
         claim.status = 'APPROVED';
       } else {
         claim.status = 'REJECTED';
-        item.status = claim.previousItemStatus;
+        item.status = item.reportType === 'FOUND' ? 'FOUND' : claim.previousItemStatus;
       }
 
       await claim.save({ session });
