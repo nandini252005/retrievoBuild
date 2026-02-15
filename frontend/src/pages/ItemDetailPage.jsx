@@ -55,9 +55,10 @@ function ItemDetailPage() {
   const currentUserId = user?._id || user?.id || null;
   const isOwner = Boolean(currentUserId && ownerId && currentUserId === ownerId);
 
-  const isFoundReport = item?.reportType === 'FOUND';
-  const isClaimBlockedStatus = ['CLAIMED', 'RETURNED'].includes(item?.status);
-  const canShowClaimForm = Boolean(isAuthenticated && !isOwner && isFoundReport && !isClaimBlockedStatus);
+  const isLostStatus = item?.status === 'LOST';
+  const isFoundStatus = item?.status === 'FOUND';
+  const nonOwnerFoundFlowLabel = isLostStatus ? 'I Found This Item' : isFoundStatus ? 'This Is Mine' : '';
+  const canShowNonOwnerFoundFlow = Boolean(isAuthenticated && !isOwner && (isLostStatus || isFoundStatus));
 
   const ownerStatusActionLabel =
     item?.reportType === 'LOST' ? 'Mark as Returned' : item?.reportType === 'FOUND' ? 'Mark as Claimed' : '';
@@ -242,10 +243,10 @@ function ItemDetailPage() {
         </section>
       ) : null}
 
-      {/* Updated claim form section for found-item ownership claims. */}
-      {canShowClaimForm ? (
+      {/* Updated claim form section for both non-owner found flows. */}
+      {canShowNonOwnerFoundFlow ? (
         <section className="card">
-          <h2>This Is Mine</h2>
+          <h2>{nonOwnerFoundFlowLabel}</h2>
           <form className="form" onSubmit={handleClaimSubmit}>
             <div className="form-row">
               <label htmlFor="claim-message">Message (optional)</label>
@@ -262,7 +263,7 @@ function ItemDetailPage() {
             {claimErrorMessage ? <p className="message-error" role="alert">{claimErrorMessage}</p> : null}
 
             <button type="submit" disabled={isSubmittingClaim}>
-              {isSubmittingClaim ? 'Submitting claim...' : 'This Is Mine'}
+              {isSubmittingClaim ? 'Submitting claim...' : nonOwnerFoundFlowLabel}
             </button>
           </form>
         </section>
