@@ -41,13 +41,29 @@ function badgeClassFor(status) {
   return STATUS_CLASS_MAP[status] || 'status-badge status-badge--gray';
 }
 
+function getLifecycleSteps(reportType, status) {
+  const lifecycleByReportType = {
+    LOST: ['LOST', 'PENDING', 'APPROVED', 'RETURNED'],
+    FOUND: ['FOUND', 'PENDING', 'APPROVED', 'CLAIMED'],
+  };
+
+  const lifecycle = lifecycleByReportType[reportType] || [];
+  const currentIndex = lifecycle.indexOf(status);
+
+  if (currentIndex === -1) {
+    return lifecycle.slice(0, 1);
+  }
+
+  return lifecycle.slice(0, currentIndex + 1);
+}
+
 function filterItems(items, activeFilter) {
   if (activeFilter === 'LOST') {
-    return items.filter((item) => item.status === 'LOST');
+    return items.filter((item) => item.reportType === 'LOST');
   }
 
   if (activeFilter === 'FOUND') {
-    return items.filter((item) => item.status === 'FOUND');
+    return items.filter((item) => item.reportType === 'FOUND');
   }
 
   return items;
@@ -223,6 +239,28 @@ function MyReportsPage() {
                     <span className={badgeClassFor(formatStatus(item.status))}>
                       {formatStatus(item.status)}
                     </span>
+                  </p>
+                  <p>
+                    Lifecycle:{' '}
+                    {getLifecycleSteps(item.reportType, item.status).map((step, index, steps) => {
+                      const isCurrentStatus = step === item.status;
+
+                      return (
+                        <span key={`${item._id || item.id || item.title}-${step}`}>
+                          <span
+                            style={{
+                              fontWeight: isCurrentStatus ? 700 : 400,
+                              backgroundColor: isCurrentStatus ? '#eef2ff' : 'transparent',
+                              padding: isCurrentStatus ? '0 0.3rem' : 0,
+                              borderRadius: isCurrentStatus ? '0.35rem' : 0,
+                            }}
+                          >
+                            {step}
+                          </span>
+                          {index < steps.length - 1 ? ' → ' : ''}
+                        </span>
+                      );
+                    })}
                   </p>
                 </article>
               ))}
