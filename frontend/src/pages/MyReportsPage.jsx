@@ -240,28 +240,39 @@ function MyReportsPage() {
                       {formatStatus(item.status)}
                     </span>
                   </p>
-                  <p>
-                    Lifecycle:{' '}
-                    {getLifecycleSteps(item.reportType, item.status).map((step, index, steps) => {
-                      const isCurrentStatus = step === item.status;
+     <div className="lifecycle-progress">
+  {(() => {
+    const fullLifecycle =
+      item.reportType === 'LOST'
+        ? ['LOST', 'PENDING', 'APPROVED', 'RETURNED']
+        : ['FOUND', 'PENDING', 'APPROVED', 'CLAIMED'];
 
-                      return (
-                        <span key={`${item._id || item.id || item.title}-${step}`}>
-                          <span
-                            style={{
-                              fontWeight: isCurrentStatus ? 700 : 400,
-                              backgroundColor: isCurrentStatus ? '#eef2ff' : 'transparent',
-                              padding: isCurrentStatus ? '0 0.3rem' : 0,
-                              borderRadius: isCurrentStatus ? '0.35rem' : 0,
-                            }}
-                          >
-                            {step}
-                          </span>
-                          {index < steps.length - 1 ? ' → ' : ''}
-                        </span>
-                      );
-                    })}
-                  </p>
+    const currentIndex = fullLifecycle.indexOf(item.status);
+
+    return fullLifecycle.map((step, index) => {
+      const isCompleted = index <= currentIndex;
+      const isCurrent = step === item.status;
+
+      return (
+        <div key={step} className="lifecycle-step">
+          <div
+            className={`lifecycle-dot ${
+              isCompleted ? 'completed' : ''
+            } ${isCurrent ? 'current' : ''}`}
+          />
+          <span className="lifecycle-label">{step}</span>
+          {index < fullLifecycle.length - 1 && (
+            <div
+              className={`lifecycle-line ${
+                index < currentIndex ? 'completed' : ''
+              }`}
+            />
+          )}
+        </div>
+      );
+    });
+  })()}
+</div>
                 </article>
               ))}
             </div>
