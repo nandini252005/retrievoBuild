@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 
 const { Item } = require('../models');
 
+
+const Claim = require('../models/claim.model');
+
+
 const isValidStatusTransition = (currentStatus, nextStatus, reportType) => {
   if ((currentStatus === 'LOST' || currentStatus === 'FOUND') && nextStatus === 'PENDING') {
     return true;
@@ -21,6 +25,65 @@ const isValidStatusTransition = (currentStatus, nextStatus, reportType) => {
   }
 
   return false;
+};
+
+
+
+class HttpError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
+}
+
+const deleteItem = async (req, res) => {
+  const session = await mongoose.startSession();
+
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new HttpError(400, 'Invalid item id');
+    }
+
+    await session.withTransaction(async () => {
+      const item = await Item.findById(id).session(session);
+
+      if (!item) {
+        throw new HttpError(404, 'Item not found');
+      }
+
+      if (item.createdBy.toString() !== req.user.id) {
+        throw new HttpError(403, 'Only owner can delete this item');
+      }
+
+      if (['CLAIMED', 'RETURNED'].includes(item.status)) {
+        throw new HttpError(400, 'Finalized items cannot be deleted');
+      }
+
+      await Claim.deleteMany({ itemId: item._id }).session(session);
+      await Item.deleteOne({ _id: item._id }).session(session);
+    });
+
+    res.status(200).json({ message: 'Item deleted successfully' });
+
+  } catch (error) {
+    console.error('deleteItem error:', error);
+
+    if (error instanceof HttpError) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    return res.status(500).json({
+      message: error.message || 'Failed to delete item',
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
+module.exports = {
+  deleteItem,
 };
 
 
@@ -198,6 +261,7 @@ const updateItemStatus = async (req, res) => {
 
 
 module.exports = {
+  deleteItem,
   createItem,
   getItems,
   getItemById,

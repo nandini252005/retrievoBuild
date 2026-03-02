@@ -55,10 +55,22 @@ function ItemDetailPage() {
   const currentUserId = user?._id || user?.id || null;
   const isOwner = Boolean(currentUserId && ownerId && currentUserId === ownerId);
 
-  const isLostStatus = item?.status === 'LOST';
-  const isFoundStatus = item?.status === 'FOUND';
-  const nonOwnerFoundFlowLabel = isLostStatus ? 'I Found This Item' : isFoundStatus ? 'This Is Mine' : '';
-  const canShowNonOwnerFoundFlow = Boolean(isAuthenticated && !isOwner && (isLostStatus || isFoundStatus));
+  const isFinalizedStatus = ['CLAIMED', 'RETURNED'].includes(item?.status);
+
+const isLostReport = item?.reportType === 'LOST';
+const isFoundReport = item?.reportType === 'FOUND';
+
+const nonOwnerFoundFlowLabel =
+  isLostReport ? 'I Found This Item'
+  : isFoundReport ? 'This Is Mine'
+  : '';
+
+const canShowNonOwnerFoundFlow = Boolean(
+  isAuthenticated &&
+  !isOwner &&
+  !isFinalizedStatus
+);
+
 
   const ownerStatusActionLabel =
     item?.reportType === 'LOST' ? 'Mark as Returned' : item?.reportType === 'FOUND' ? 'Mark as Claimed' : '';
@@ -130,6 +142,18 @@ function ItemDetailPage() {
       setIsSubmittingClaim(false);
     }
   };
+
+  const handleDeleteItem = async () => {
+  const confirmDelete = window.confirm('Are you sure you want to delete this item?');
+  if (!confirmDelete) return;
+
+  try {
+    await apiClient.delete(`/items/${id}`);
+    window.location.href = '/'; // or navigate to items page
+  } catch (error) {
+    alert(error.response?.data?.message || 'Failed to delete item');
+  }
+};
 
   const handleReviewClaim = async (claimId, decision) => {
     setReviewErrorMessage('');
@@ -242,6 +266,18 @@ function ItemDetailPage() {
           ) : null}
         </section>
       ) : null}
+
+      {isOwner && !isFinalizedStatus ? (
+  <section className="card">
+    <button
+      type="button"
+      onClick={handleDeleteItem}
+      style={{ backgroundColor: 'crimson', color: 'white' }}
+    >
+      Delete Report
+    </button>
+  </section>
+) : null}
 
       {/* Updated claim form section for both non-owner found flows. */}
       {canShowNonOwnerFoundFlow ? (

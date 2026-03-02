@@ -10,19 +10,14 @@ class HttpError extends Error {
 }
 
 const isClaimableItemState = (item) => {
-  if (!item) {
-    return false;
-  }
+  if (!item) return false;
 
-  if (item.reportType === 'FOUND') {
-    return !['CLAIMED', 'RETURNED'].includes(item.status);
-  }
-
-  return item.status === 'LOST';
+  const FINAL_STATES = ['CLAIMED', 'RETURNED'];
+  return !FINAL_STATES.includes(item.status);
 };
 
 /**
- * Create a claim (non-owner, item must be claimable in current flow)
+ * Create a claim (non-owner, item must not be finalized)
  */
 const createClaim = async (req, res) => {
   const session = await mongoose.startSession();
@@ -61,20 +56,25 @@ const createClaim = async (req, res) => {
       }
 
       const [claim] = await Claim.create(
-        [
-          {
-            itemId: item._id,
-            claimantId: req.user.id,
-            message: message || '',
-            status: 'PENDING',
-            previousItemStatus: item.reportType === 'FOUND' ? 'FOUND' : item.status,
-          },
-        ],
-        { session }
-      );
+  [
+    {
+      itemId: item._id,
+      claimantId: req.user.id,
+      message: message || '',
+      status: 'PENDING',
+      previousItemStatus:
+        item.reportType === 'FOUND' ? 'FOUND' : 'LOST',
+    },
+  ],
+  { session }
+);
 
-      item.status = 'PENDING';
-      await item.save({ session });
+      // Set item to PENDING if not already
+      if (item.status !== 'PENDING') {
+        item.status = 'PENDING';
+        await item.save({ session });
+      }
+
       createdClaim = claim;
     });
 
@@ -86,14 +86,16 @@ const createClaim = async (req, res) => {
       return res.status(error.status).json({ message: error.message });
     }
 
-    res.status(500).json({ message: 'This item cannot be claimed at this time' });
+    return res.status(500).json({
+      message: error.message || 'Internal server error',
+    });
   } finally {
     session.endSession();
   }
 };
 
 /**
- * Get all claims for an item (ONLY OWNER)
+ * Get all claims for an item (OWNER only)
  */
 const getClaimsForItem = async (req, res) => {
   try {
@@ -167,9 +169,20 @@ const reviewClaim = (decision) => async (req, res) => {
 
       if (decision === 'APPROVED') {
         claim.status = 'APPROVED';
+        item.status = 'APPROVED';
       } else {
         claim.status = 'REJECTED';
-        item.status = item.reportType === 'FOUND' ? 'FOUND' : claim.previousItemStatus;
+
+        // Revert only if no other pending claims exist
+        const otherPendingClaims = await Claim.countDocuments({
+          itemId: item._id,
+          status: 'PENDING',
+          _id: { $ne: claim._id },
+        }).session(session);
+
+        if (otherPendingClaims === 0) {
+          item.status = claim.previousItemStatus;
+        }
       }
 
       await claim.save({ session });
