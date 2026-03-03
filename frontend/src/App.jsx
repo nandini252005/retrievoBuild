@@ -7,6 +7,7 @@ import ItemsPage from './pages/ItemsPage';
 import LoginPage from './pages/LoginPage';
 import MyReportsPage from './pages/MyReportsPage';
 import RegisterPage from './pages/RegisterPage';
+import ReportsPage from './pages/ReportsPage';
 
 function App() {
   return (
@@ -17,10 +18,12 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/items" element={<ItemsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
           <Route path="/items/:id" element={<ItemDetailPage />} />
           <Route path="/create" element={<CreateItemPage />} />
           <Route path="/my-reports" element={<MyReportsPage />} />
           <Route path="*" element={<Navigate to="/items" replace />} />
+          
         </Routes>
       </div>
     </>
