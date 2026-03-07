@@ -57,7 +57,7 @@ function ProfileMenu({ onLogout }) {
           </li>
           <li role="none">
             <button type="button" role="menuitem" onClick={() => handleSelect(() => navigate('/profile'))}>
-              Profile
+              Edit Profile
             </button>
           </li>
           <li role="none">
