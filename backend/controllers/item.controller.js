@@ -137,36 +137,33 @@ const getItems = async (req, res) => {
     const skip = (page - 1) * limit;
 
 
-    const filter = {};
+    const query = {};
+
     // If mine=true → only items created by logged-in user
-if (req.query.mine === 'true') {
-  filter.createdBy = req.user.id;
-}
-
-
-
-
-    if (req.query.status) {
-      filter.status = req.query.status;
+    if (req.query.mine === 'true') {
+      query.createdBy = req.user.id;
     }
 
-    if (req.query.reportType) {
-      filter.reportType = req.query.reportType;
+    if (req.query.reportType && req.query.reportType !== 'All') {
+      query.reportType = req.query.reportType;
     }
-
 
     if (req.query.category) {
-      filter.category = req.query.category;
+      query.category = { $regex: req.query.category, $options: 'i' };
+    }
+
+    if (req.query.location) {
+      query.location = { $regex: req.query.location, $options: 'i' };
     }
 
 
     const [items, totalItems] = await Promise.all([
-      Item.find(filter)
+      Item.find(query)
         .populate('createdBy', 'name email')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
-      Item.countDocuments(filter),
+      Item.countDocuments(query),
     ]);
 
 
@@ -271,4 +268,3 @@ module.exports = {
   getItemById,
   updateItemStatus,
 };
-
