@@ -1,45 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 
 import apiClient from '../api/client';
+import ReportCard from '../components/reports/ReportCard';
 import './ItemsPage.css';
-import './MyReportsPage.css';
+import './ReportsPage.css';
 
 const PAGE_LIMIT = 10;
-
-const STATUS_CLASS_MAP = {
-  LOST: 'status-badge status-badge--gray',
-  FOUND: 'status-badge status-badge--navy',
-  CLAIMED: 'status-badge status-badge--navy',
-  RETURNED: 'status-badge status-badge--green',
-  PENDING: 'status-badge status-badge--navy',
-  APPROVED: 'status-badge status-badge--green',
-  REJECTED: 'status-badge status-badge--red',
-};
-
-function formatStatus(status) {
-  return status || 'UNKNOWN';
-}
-
-function badgeClassFor(status) {
-  return STATUS_CLASS_MAP[status] || 'status-badge status-badge--gray';
-}
-
-function getLifecycleSteps(reportType, status) {
-  const lifecycleByReportType = {
-    LOST: ['LOST', 'PENDING', 'APPROVED', 'RETURNED'],
-    FOUND: ['FOUND', 'PENDING', 'APPROVED', 'CLAIMED'],
-  };
-
-  const lifecycle = lifecycleByReportType[reportType] || [];
-  const currentIndex = lifecycle.indexOf(status);
-
-  if (currentIndex === -1) {
-    return lifecycle.slice(0, 1);
-  }
-
-  return lifecycle.slice(0, currentIndex + 1);
-}
 
 function ReportsPage() {
   const [items, setItems] = useState([]);
@@ -160,61 +126,12 @@ function ReportsPage() {
             {items.length === 0 ? (
               <p className="muted-text">No items match your filters.</p>
             ) : (
-              <ul className="items-list">
-                {items.map((item) => {
-                  const fullLifecycle = getLifecycleSteps(item.reportType, item.status);
-                  const currentIndex = fullLifecycle.indexOf(item.status);
-                  const reportedBy = item.createdBy?.name || item.createdBy?.email || 'Unknown';
-                  const reportedOn = item.createdAt
-                    ? new Date(item.createdAt).toLocaleString(undefined, {
-                        dateStyle: 'medium',
-                        timeStyle: 'short',
-                      })
-                    : 'N/A';
-
-                  return (
-                    <li key={item._id}>
-                      <Link className="item-card-link" to={`/items/${item._id}`}>
-                        <article className="item-card">
-                          <div className="item-card__head">
-                            <h3 className="item-card__title">{item.title}</h3>
-                            <span className={badgeClassFor(formatStatus(item.status))}>
-                              {formatStatus(item.status)}
-                            </span>
-                          </div>
-
-                          <p className="item-meta">Reported by: {reportedBy}</p>
-                          <p className="item-meta">Reported on: {reportedOn}</p>
-                          <p className="item-meta">Category: {item.category}</p>
-                          <p className="item-meta">Location: {item.location}</p>
-
-                          {fullLifecycle.length > 0 ? (
-                            <div className="lifecycle-progress">
-                              {fullLifecycle.map((step, index) => {
-                                const isCompleted = currentIndex >= 0 && index <= currentIndex;
-                                const isCurrent = step === item.status;
-
-                                return (
-                                  <div key={step} className="lifecycle-step">
-                                    <div
-                                      className={`lifecycle-dot ${isCompleted ? 'completed' : ''} ${
-                                        isCurrent ? 'current' : ''
-                                      }`}
-                                    />
-                                    <span className="lifecycle-label">{step}</span>
-                                    {index < fullLifecycle.length - 1 ? (
-                                      <div className={`lifecycle-line ${index < currentIndex ? 'completed' : ''}`} />
-                                    ) : null}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-                        </article>
-                      </Link>
-                    </li>
-                  );
-                })}
+              <ul className="items-list reports-list-compact">
+                {items.map((item) => (
+                  <li key={item._id}>
+                    <ReportCard item={item} />
+                  </li>
+                ))}
               </ul>
             )}
 
