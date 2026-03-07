@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
+import ProfileMenu from './ProfileMenu';
 import './Navbar.css';
 
 function Navbar() {
@@ -36,9 +37,7 @@ function Navbar() {
                 My Reports
               </NavLink>
 
-              <button type="button" className="navbar__logout" onClick={handleLogout}>
-                Logout
-              </button>
+              <ProfileMenu onLogout={handleLogout} />
             </>
           ) : (
             <>
