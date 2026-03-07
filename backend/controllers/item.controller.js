@@ -150,6 +150,10 @@ if (req.query.mine === 'true') {
       filter.status = req.query.status;
     }
 
+    if (req.query.reportType) {
+      filter.reportType = req.query.reportType;
+    }
+
 
     if (req.query.category) {
       filter.category = req.query.category;
@@ -267,5 +271,4 @@ module.exports = {
   getItemById,
   updateItemStatus,
 };
-
 
