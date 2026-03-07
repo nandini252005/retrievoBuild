@@ -6,6 +6,7 @@ import ItemDetailPage from './pages/ItemDetailPage';
 import ItemsPage from './pages/ItemsPage';
 import LoginPage from './pages/LoginPage';
 import MyReportsPage from './pages/MyReportsPage';
+import EditProfilePage from './pages/EditProfilePage';
 import RegisterPage from './pages/RegisterPage';
 import ReportsPage from './pages/ReportsPage';
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="/items/:id" element={<ItemDetailPage />} />
           <Route path="/create" element={<CreateItemPage />} />
           <Route path="/my-reports" element={<MyReportsPage />} />
+          <Route path="/profile" element={<EditProfilePage />} />
           <Route path="*" element={<Navigate to="/items" replace />} />
           
         </Routes>
