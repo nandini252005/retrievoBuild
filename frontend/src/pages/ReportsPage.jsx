@@ -16,12 +16,14 @@ function ReportsPage() {
 
   const [filters, setFilters] = useState({
     reportType: 'All',
+    status: 'All',
     category: '',
     location: '',
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
     reportType: 'All',
+    status: 'All',
     category: '',
     location: '',
   });
@@ -35,6 +37,10 @@ function ReportsPage() {
 
       if (appliedFilters.reportType !== 'All') {
         params.reportType = appliedFilters.reportType;
+      }
+
+      if (appliedFilters.status !== 'All') {
+        params.status = appliedFilters.status;
       }
 
       if (appliedFilters.category.trim()) {
@@ -79,43 +85,64 @@ function ReportsPage() {
       <h1>Item Reports</h1>
 
       <section className="reports-section">
-        <form className="filters" onSubmit={handleFilterSubmit}>
-          <div className="filters__grid">
-            <label className="filters__field">
-              <span>Report Type</span>
-              <select name="reportType" value={filters.reportType} onChange={handleFilterChange}>
-                <option value="All">All</option>
-                <option value="LOST">LOST</option>
-                <option value="FOUND">FOUND</option>
-              </select>
-            </label>
+        <form className="reports-filter-bar" onSubmit={handleFilterSubmit}>
+          <select name="reportType" value={filters.reportType} onChange={handleFilterChange}>
+            <option value="All">Report Type</option>
+            <option value="LOST">Lost</option>
+            <option value="FOUND">Found</option>
+          </select>
 
-            <label className="filters__field">
-              <span>Category</span>
-              <input
-                name="category"
-                type="text"
-                placeholder="e.g. phone"
-                value={filters.category}
-                onChange={handleFilterChange}
-              />
-            </label>
+          <select name="status" value={filters.status} onChange={handleFilterChange}>
+            <option value="All">Current Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="APPROVED">Approved</option>
+            <option value="RETURNED">Returned</option>
+            <option value="CLAIMED">Claimed</option>
+          </select>
 
-            <label className="filters__field">
-              <span>Location</span>
-              <input
-                name="location"
-                type="text"
-                placeholder="e.g. library"
-                value={filters.location}
-                onChange={handleFilterChange}
-              />
-            </label>
+          <input
+            type="text"
+            name="category"
+            placeholder="Category"
+            value={filters.category}
+            onChange={handleFilterChange}
+          />
+
+          <input
+            type="text"
+            name="location"
+            placeholder="Location"
+            value={filters.location}
+            onChange={handleFilterChange}
+          />
+
+          <div className="filter-actions">
+            <button type="submit" className="search-btn">
+              Search
+            </button>
+
+            <button
+              type="button"
+              className="reset-btn"
+              onClick={() => {
+                setFilters({
+                  reportType: 'All',
+                  status: 'All',
+                  category: '',
+                  location: '',
+                });
+                setAppliedFilters({
+                  reportType: 'All',
+                  status: 'All',
+                  category: '',
+                  location: '',
+                });
+                setPage(1);
+              }}
+            >
+              Reset
+            </button>
           </div>
-
-          <button className="filters__search-button" type="submit">
-            Search
-          </button>
         </form>
 
         {isLoading && <p className="muted-text">Loading items...</p>}
