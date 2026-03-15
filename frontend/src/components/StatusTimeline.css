@@ -1,0 +1,45 @@
+.status-timeline {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.timeline-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeline-circle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.timeline-circle-active {
+  background: #0f2a4a;
+}
+
+.timeline-label {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.timeline-label-active {
+  color: #0f2a4a;
+  font-weight: 600;
+}
+
+.timeline-line {
+  width: 40px;
+  height: 2px;
+  background: #cbd5e1;
+  margin: 0 8px;
+}
+
+.timeline-line-active {
+  background: #0f2a4a;
+}

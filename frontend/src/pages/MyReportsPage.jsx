@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import apiClient from '../api/client';
 import { useAuth } from '../auth/AuthContext';
+import StatusTimeline from '../components/StatusTimeline';
 import './MyReportsPage.css';
 
 const STATUS_CLASS_MAP = {
@@ -39,22 +40,6 @@ function formatStatus(status) {
 
 function badgeClassFor(status) {
   return STATUS_CLASS_MAP[status] || 'status-badge status-badge--gray';
-}
-
-function getLifecycleSteps(reportType, status) {
-  const lifecycleByReportType = {
-    LOST: ['LOST', 'PENDING', 'APPROVED', 'RETURNED'],
-    FOUND: ['FOUND', 'PENDING', 'APPROVED', 'CLAIMED'],
-  };
-
-  const lifecycle = lifecycleByReportType[reportType] || [];
-  const currentIndex = lifecycle.indexOf(status);
-
-  if (currentIndex === -1) {
-    return lifecycle.slice(0, 1);
-  }
-
-  return lifecycle.slice(0, currentIndex + 1);
 }
 
 function filterItems(items, activeFilter) {
@@ -240,39 +225,7 @@ function MyReportsPage() {
                       {formatStatus(item.status)}
                     </span>
                   </p>
-     <div className="lifecycle-progress">
-  {(() => {
-    const fullLifecycle =
-      item.reportType === 'LOST'
-        ? ['LOST', 'PENDING', 'APPROVED', 'RETURNED']
-        : ['FOUND', 'PENDING', 'APPROVED', 'CLAIMED'];
-
-    const currentIndex = fullLifecycle.indexOf(item.status);
-
-    return fullLifecycle.map((step, index) => {
-      const isCompleted = index <= currentIndex;
-      const isCurrent = step === item.status;
-
-      return (
-        <div key={step} className="lifecycle-step">
-          <div
-            className={`lifecycle-dot ${
-              isCompleted ? 'completed' : ''
-            } ${isCurrent ? 'current' : ''}`}
-          />
-          <span className="lifecycle-label">{step}</span>
-          {index < fullLifecycle.length - 1 && (
-            <div
-              className={`lifecycle-line ${
-                index < currentIndex ? 'completed' : ''
-              }`}
-            />
-          )}
-        </div>
-      );
-    });
-  })()}
-</div>
+                  <StatusTimeline reportType={item.reportType} status={item.status} />
                 </article>
               ))}
             </div>
