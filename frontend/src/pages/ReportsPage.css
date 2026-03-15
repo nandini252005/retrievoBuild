@@ -137,44 +137,6 @@
   background: #e5e7eb;
 }
 
-.timeline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 6px;
-}
-
-.timeline-step {
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.timeline-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  border: 1px solid #94a3b8;
-  background: #fff;
-  flex-shrink: 0;
-}
-
-.timeline-dot.is-completed {
-  border-color: #0b2f6b;
-  background: #0b2f6b;
-}
-
-.timeline-line {
-  flex: 1;
-  height: 2px;
-  background: #cbd5e1;
-  margin: 0 6px;
-}
-
-.timeline-line.is-completed {
-  background: #0b2f6b;
-}
-
 @media (max-width: 640px) {
   .report-card {
     padding: 14px;

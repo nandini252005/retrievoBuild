@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import ReportTimeline from './ReportTimeline';
+import StatusTimeline from '../StatusTimeline';
 
 const REPORT_TYPE_CLASS_MAP = {
   LOST: 'status-badge status-badge--lost',
@@ -51,7 +51,7 @@ function ReportCard({ item }) {
           <span>Location: {item.location || 'N/A'}</span>
         </div>
 
-        <ReportTimeline reportType={item.reportType} status={item.status} />
+        <StatusTimeline reportType={item.reportType} status={item.status} />
       </article>
     </Link>
   );
