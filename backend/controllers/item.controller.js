@@ -147,6 +147,9 @@ const getItems = async (req, res) => {
     if (req.query.reportType && req.query.reportType !== 'All') {
       query.reportType = req.query.reportType;
     }
+    if (req.query.status && req.query.status !== "All") {
+  query.status = req.query.status
+}
 
     if (req.query.category) {
       query.category = { $regex: req.query.category, $options: 'i' };
