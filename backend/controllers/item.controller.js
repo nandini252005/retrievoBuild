@@ -1,11 +1,7 @@
 const mongoose = require('mongoose');
 
-
 const { Item } = require('../models');
-
-
 const Claim = require('../models/claim.model');
-
 
 const isValidStatusTransition = (currentStatus, nextStatus, reportType) => {
   if ((currentStatus === 'LOST' || currentStatus === 'FOUND') && nextStatus === 'PENDING') {
@@ -26,8 +22,6 @@ const isValidStatusTransition = (currentStatus, nextStatus, reportType) => {
 
   return false;
 };
-
-
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -66,7 +60,6 @@ const deleteItem = async (req, res) => {
     });
 
     res.status(200).json({ message: 'Item deleted successfully' });
-
   } catch (error) {
     console.error('deleteItem error:', error);
 
@@ -82,39 +75,47 @@ const deleteItem = async (req, res) => {
   }
 };
 
-module.exports = {
-  deleteItem,
-};
-
-
 const createItem = async (req, res) => {
   try {
-    const { title, description, category, location, images, status } = req.body;
+    const {
+      title,
+      description,
+      category,
+      customCategory,
+      location,
+      reportType,
+      status,
+    } = req.body;
 
+    const incomingReportType = reportType || status;
 
-    if (!title || !description || !category || !location) {
+    if (!title || !description || !category || !location || !incomingReportType) {
       return res.status(400).json({
-        message: 'title, description, category, and location are required',
+        message: 'title, description, category, location, and reportType are required',
       });
     }
 
-
-    // ✅ Validate status explicitly
     const allowedStatuses = ['LOST', 'FOUND'];
-    const finalStatus = allowedStatuses.includes(status) ? status : 'LOST';
+    const finalReportType = allowedStatuses.includes(incomingReportType) ? incomingReportType : 'LOST';
 
+    const finalCategory = category === 'Others' ? customCategory : category;
+
+    if (!finalCategory) {
+      return res.status(400).json({ message: 'category is required' });
+    }
+
+    const images = req.file ? [`/uploads/${req.file.filename}`] : [];
 
     const item = await Item.create({
       title,
       description,
-      category,
+      category: finalCategory,
       location,
-      images: Array.isArray(images) ? images : [],
-      status: finalStatus, // ✅ USE CLIENT VALUE
-      reportType: finalStatus,
+      reportType: finalReportType,
+      status: finalReportType,
+      images,
       createdBy: req.user.id,
     });
-
 
     return res.status(201).json(item);
   } catch (error) {
@@ -123,23 +124,17 @@ const createItem = async (req, res) => {
   }
 };
 
-
-
-
 const getItems = async (req, res) => {
   try {
     const parsedPage = Number.parseInt(req.query.page, 10);
     const parsedLimit = Number.parseInt(req.query.limit, 10);
 
-
     const page = Number.isNaN(parsedPage) || parsedPage <= 0 ? 1 : parsedPage;
     const limit = Number.isNaN(parsedLimit) || parsedLimit <= 0 ? 10 : parsedLimit;
     const skip = (page - 1) * limit;
 
-
     const query = {};
 
-    // If mine=true → only items created by logged-in user
     if (req.query.mine === 'true') {
       query.createdBy = req.user.id;
     }
@@ -147,9 +142,10 @@ const getItems = async (req, res) => {
     if (req.query.reportType && req.query.reportType !== 'All') {
       query.reportType = req.query.reportType;
     }
-    if (req.query.status && req.query.status !== "All") {
-  query.status = req.query.status
-}
+
+    if (req.query.status && req.query.status !== 'All') {
+      query.status = req.query.status;
+    }
 
     if (req.query.category) {
       query.category = { $regex: req.query.category, $options: 'i' };
@@ -158,7 +154,6 @@ const getItems = async (req, res) => {
     if (req.query.location) {
       query.location = { $regex: req.query.location, $options: 'i' };
     }
-
 
     const [items, totalItems] = await Promise.all([
       Item.find(query)
@@ -169,9 +164,7 @@ const getItems = async (req, res) => {
       Item.countDocuments(query),
     ]);
 
-
     const totalPages = Math.ceil(totalItems / limit);
-
 
     return res.status(200).json({
       items,
@@ -181,34 +174,27 @@ const getItems = async (req, res) => {
       totalPages,
     });
   } catch (error) {
-  console.error('getItems error:', error);
-  return res.status(500).json({
-    message: 'Failed to fetch items',
-    error: error.message
-  });
-}
-}
-
-
-
+    console.error('getItems error:', error);
+    return res.status(500).json({
+      message: 'Failed to fetch items',
+      error: error.message,
+    });
+  }
+};
 
 const getItemById = async (req, res) => {
   try {
     const { id } = req.params;
 
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid item id' });
     }
 
-
     const item = await Item.findById(id).populate('createdBy', 'name email');
-
 
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
-
 
     return res.status(200).json(item);
   } catch (error) {
@@ -216,35 +202,28 @@ const getItemById = async (req, res) => {
   }
 };
 
-
 const updateItemStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid item id' });
     }
-
 
     if (!status) {
       return res.status(400).json({ message: 'status is required' });
     }
 
-
     const item = await Item.findById(id);
-
 
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
 
-
     if (item.createdBy.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Forbidden: only owner can update item status' });
     }
-
 
     if (!isValidStatusTransition(item.status, status, item.reportType)) {
       return res.status(400).json({
@@ -252,17 +231,14 @@ const updateItemStatus = async (req, res) => {
       });
     }
 
-
     item.status = status;
     await item.save();
-
 
     return res.status(200).json(item);
   } catch (error) {
     return res.status(500).json({ message: 'Failed to update item status' });
   }
 };
-
 
 module.exports = {
   deleteItem,
