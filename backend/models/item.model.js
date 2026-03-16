@@ -33,11 +33,11 @@ const itemSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    images: {
-      type: [String],
-      default: [],
-    },
-    // Reference to the reporting user.
+    images: [
+      {
+        type: String,
+      },
+    ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -48,7 +48,6 @@ const itemSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
 
 itemSchema.index({ status: 1 });
 itemSchema.index({ category: 1 });
